@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Form
 import uvicorn
 import base64
 from fastapi.responses import FileResponse
@@ -49,11 +49,23 @@ async def root():
     return {
         "message": "Welcome to Code Documentation API",
         "usage": {
-            "endpoint": "/document",
-            "method": "POST",
-            "body": {
-                "code": "Your code here (any programming language)",
-                "isBase64": "Optional boolean (default: false) to indicate if the code is base64 encoded"
+            "text_input": {
+                "endpoint": "/docs/gen",
+                "method": "POST",
+                "body": {
+                    "code": "Your code here (any programming language)",
+                    "isBase64": "Optional boolean (default: false) to indicate if the code is base64 encoded"
+                }
+            },
+            "file_upload": {
+                "endpoint": "/docs/from-upload",
+                "method": "POST",
+                "form": "file: Upload a text file containing code"
+            },
+            "download": {
+                "endpoint": "/docs/download",
+                "method": "POST",
+                "options": "Can accept either a request body with code OR a file upload"
             }
         },
         "example": {
@@ -62,7 +74,7 @@ async def root():
         }
     }
 
-@app.post("/document", response_model=DocumentationResponse)
+@app.post("/docs/gen", response_model=DocumentationResponse)
 async def generate_documentation(request: CodeDocumentationRequest):
     try:
         if not request.code:
@@ -117,11 +129,71 @@ async def generate_documentation(request: CodeDocumentationRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-@app.post("/document/download")
-async def download_documentation(request: CodeDocumentationRequest):
+# Adding file upload endpoint for documentation generation
+@app.post("/docs/from-upload", response_model=DocumentationResponse)
+async def generate_docs_from_upload(file: UploadFile = File(...)):
     try:
-        # Generate documentation using the same logic as /document endpoint
-        doc_response = await generate_documentation(request)
+        # Read contents of the uploaded file
+        file_content = await file.read()
+        
+        # Try to decode as text first to verify it's a valid text file
+        try:
+            # Just to verify it's readable text
+            file_content.decode('utf-8')
+        except UnicodeDecodeError:
+            raise HTTPException(status_code=400, detail="File could not be decoded as text. Please upload a text file containing code.")
+        
+        # Encode the file content as base64
+        base64_code = base64.b64encode(file_content).decode('utf-8')
+        
+        # Create a request object with base64 encoded content
+        request = CodeDocumentationRequest(code=base64_code, isBase64=True)
+        
+        # Use the existing documentation generation endpoint
+        return await generate_documentation(request)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
+
+
+@app.post("/docs/download")
+async def download_documentation(
+    file: Optional[UploadFile] = File(None),
+    code: Optional[str] = Form(None),
+    isBase64: bool = Form(False)
+):
+    try:
+        final_request = None
+        
+        # Debug information
+        print(f"Code: {code and code[:50]}...")
+        print(f"isBase64: {isBase64}")
+        print(f"File: {file}")
+        
+        # Process uploaded file if present
+        if file and file.filename:
+            file_content = await file.read()
+            try:
+                file_content.decode('utf-8')  # Validate text file
+            except UnicodeDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid text file.")
+                
+            # Create request from file
+            base64_code = base64.b64encode(file_content).decode('utf-8')
+            print(f"File content encoded to base64: {base64_code[:50]}...")
+            final_request = CodeDocumentationRequest(code=base64_code, isBase64=True)
+        
+        # Process direct code input if present
+        elif code:
+            final_request = CodeDocumentationRequest(code=code, isBase64=isBase64)
+            print(f"Using provided code input: {code[:50]}...")
+          # If neither is provided
+        else:
+            raise HTTPException(status_code=400, detail="Either 'code' or 'file' field is required")
+            
+        # Generate documentation using the same logic as /docs/gen endpoint
+        doc_response = await generate_documentation(final_request)
         
         # Create a timestamped filename for the download
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
