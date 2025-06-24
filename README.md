@@ -8,6 +8,7 @@ A FastAPI backend that generates documentation for code snippets using Google's 
 - Handle complex multiline code via base64 encoding
 - Return formatted Markdown documentation
 - Download documentation as .md files
+- Upload code files for documentation generation
 
 ## Setup
 
@@ -43,9 +44,11 @@ Or run directly:
 python main.py
 ```
 
+Once the server is running, you can access the Swagger UI for API documentation at: /api-docs
+
 ## API Endpoints
 
-### `POST /document`
+### `POST /docs/gen`
 
 Generates documentation for provided code and returns it as JSON.
 
@@ -64,11 +67,28 @@ Generates documentation for provided code and returns it as JSON.
 }
 ```
 
-### `POST /document/download`
+### `POST /docs/from-upload`
+
+Generates documentation from an uploaded file containing code.
+
+**Request:**
+- `file`: Upload a text file containing code.
+
+**Response:**
+```json
+{
+  "markdown": "## Overview\n\nThis code defines a function that prints 'Hello, world!'...",
+}
+```
+
+### `POST /docs/download`
 
 Generates documentation and returns it as a downloadable .md file.
 
-**Request Body:** Same as `/document` endpoint
+**Request:**
+- `file`: Upload a text file containing code.
+- OR
+- `code`: Provide code directly in the request body.
 
 **Response:** Markdown file download
 
@@ -81,7 +101,7 @@ For complex multiline code with special characters, use base64 encoding:
 const code = document.getElementById('codeInput').value;
 const encodedCode = btoa(code);  // Base64 encode
 
-fetch('/document', {
+fetch('/docs/gen', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -101,3 +121,4 @@ fetch('/document', {
 - Leverages Google's Gemma 3 12B IT model for documentation generation
 - Implements proper error handling for all endpoints
 - Includes temporary file management for downloads
+- Supports file uploads for documentation generation
