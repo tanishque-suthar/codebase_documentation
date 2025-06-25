@@ -1,6 +1,6 @@
-# Code Documentation API Backend
+# Code Documentation API
 
-A FastAPI backend that generates documentation for code snippets using Google's Gemma AI model.
+A full-stack application that generates documentation for code snippets using Google's Gemma AI model.
 
 ## Features
 
@@ -9,8 +9,15 @@ A FastAPI backend that generates documentation for code snippets using Google's 
 - Return formatted Markdown documentation
 - Download documentation as .md files
 - Upload code files for documentation generation
+- Modern React UI with code input and file upload options
+- Syntax-highlighted documentation preview
 
-## Setup
+## Project Structure
+
+- **Backend**: FastAPI server that processes code and generates documentation
+- **Frontend**: React application with Vite for a responsive user interface
+
+## Backend Setup
 
 1. Set up a virtual environment:
    ```
@@ -32,8 +39,28 @@ A FastAPI backend that generates documentation for code snippets using Google's 
      HOST=0.0.0.0
      ```
 
-## Running the API
+## Frontend Setup
 
+1. Navigate to the frontend directory:
+   ```
+   cd frontend/docapp
+   ```
+
+2. Install dependencies:
+   ```
+   npm install
+   ```
+
+3. Start the development server:
+   ```
+   npm run dev
+   ```
+
+4. The frontend will be available at: http://localhost:5173
+
+## Running the Application
+
+### Backend
 Start the API server:
 ```
 uvicorn main:app --reload
@@ -45,6 +72,21 @@ python main.py
 ```
 
 Once the server is running, you can access the Swagger UI for API documentation at: /api-docs
+
+### Frontend
+Start the frontend development server:
+```
+cd frontend/docapp
+npm run dev
+```
+
+## UI Components
+
+The frontend includes the following main components:
+
+- **CodeInput**: Text area for pasting code snippets
+- **FileUpload**: File upload interface for code files
+- **DocumentationDisplay**: Displays generated documentation with syntax highlighting
 
 ## API Endpoints
 
@@ -117,8 +159,55 @@ fetch('/docs/gen', {
 
 ## Technical Details
 
+Backend:
 - Uses FastAPI framework for the REST API
 - Leverages Google's Gemma 3 12B IT model for documentation generation
 - Implements proper error handling for all endpoints
 - Includes temporary file management for downloads
 - Supports file uploads for documentation generation
+
+Frontend:
+- Built with React + Vite for a fast, modern UI
+- Uses marked.js for Markdown rendering
+- Highlight.js for syntax highlighting code blocks
+- Responsive design for desktop and mobile use
+- Clean tab-based interface for code input and file upload options
+
+## Development
+
+### Building for Production
+
+#### Backend
+```
+cd backend
+pip install -r requirements.txt
+```
+
+#### Frontend
+```
+cd frontend/docapp
+npm install
+npm run build
+```
+
+The production build will be available in the `frontend/docapp/dist` directory.
+
+### Browser Compatibility
+
+The application has been tested and works on:
+- Chrome (latest)
+- Firefox (latest)
+- Edge (latest)
+- Safari (latest)
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
