@@ -11,6 +11,7 @@ import os
 from tempfile import NamedTemporaryFile
 from datetime import datetime
 from dotenv import load_dotenv
+from middleware import setup_cors_middleware
 
 # Load environment variables from .env file
 load_dotenv()
@@ -18,7 +19,11 @@ load_dotenv()
 # Initialize FastAPI app
 app = FastAPI(title="Document AI App", 
               description="API for processing documents with AI",
-              version="0.1.0")
+              version="0.1.0",
+              docs_url="/api-docs")
+
+# Apply CORS middleware
+app = setup_cors_middleware(app)
 
 # Initialize Google AI client
 api_key = os.getenv("GOOGLE_API_KEY")
