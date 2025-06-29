@@ -153,6 +153,15 @@ async def root():
                 "endpoint": "/docs/download",
                 "method": "POST",
                 "options": "Can accept either a request body with code OR a file upload"
+            },
+            "github_download": {
+                "endpoint": "/docs/download-github",
+                "method": "POST",
+                "body": {
+                    "github_url": "GitHub repository URL",
+                    "max_files": "Optional number (default: 10) to limit files processed"
+                },
+                "description": "Download documentation for GitHub repository as .md file"
             }
         },
         "example": {
@@ -662,6 +671,45 @@ async def download_documentation(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/docs/download-github")
+async def download_github_documentation(request: GitHubDocumentationRequest):
+    """
+    Generate and download documentation for a GitHub repository as a .md file
+    """
+    try:
+        # Use the existing GitHub documentation generation logic
+        doc_response = await generate_docs_from_github(request)
+        
+        # Parse GitHub URL for filename
+        repo_info = parse_github_url(request.github_url)
+        repo_name = f"{repo_info['owner']}_{repo_info['repo']}"
+        
+        # Create a timestamped filename for the download
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        doc_filename = f"github_docs_{repo_name}_{timestamp}.md"
+        
+        # Create a temporary file with the markdown content
+        with NamedTemporaryFile(delete=False, mode='w', suffix='.md', encoding='utf-8') as temp_file:
+            temp_file.write(doc_response.markdown)
+            temp_path = temp_file.name
+        
+        # Return the file as a download
+        return FileResponse(
+            path=temp_path,
+            filename=doc_filename,
+            media_type='text/markdown',
+            background=BackgroundTask(lambda: os.unlink(temp_path))  # Delete file after download
+        )
+    except HTTPException:
+        # Re-raise HTTP exceptions from generate_docs_from_github
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error generating GitHub documentation download: {str(e)}"
+        )
 
 # Add this if you want to run directly using python (not needed for uvicorn command line)
 if __name__ == "__main__":
