@@ -218,9 +218,12 @@ body {
     Arial, sans-serif;
   line-height: 1.6;
   text-align: left;
-  /* Ensure left alignment */
   width: 100%;
-  padding: 20px;
+  padding: 25px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  font-size: 0.95rem;
 }
 
 .markdown-preview * {
@@ -230,33 +233,132 @@ body {
   /* Prevent content from overflowing */
 }
 
-.markdown-preview h1,
-.markdown-preview h2,
+.markdown-preview h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-top: 1.5em;
+  margin-bottom: 0.75em;
+  padding-bottom: 0.3em;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.markdown-preview h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-top: 1.25em;
+  margin-bottom: 0.6em;
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid var(--border-color);
+}
+
 .markdown-preview h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-color);
   margin-top: 1em;
   margin-bottom: 0.5em;
 }
 
+.markdown-preview h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-top: 0.8em;
+  margin-bottom: 0.4em;
+}
+
+.markdown-preview h5,
+.markdown-preview h6 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-top: 0.6em;
+  margin-bottom: 0.3em;
+}
+
 .markdown-preview code {
-  background-color: var(--background-light);
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.9em;
+  background-color: #f6f8fa;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.85em;
+  color: #d73a49;
+  font-weight: 500;
   max-width: 100%;
   word-break: break-word;
-  /* Break long words if needed */
 }
 
 .markdown-preview pre {
-  background-color: var(--background-light);
-  padding: 15px;
-  border-radius: 3px;
+  background-color: #f6f8fa;
+  padding: 16px;
+  border-radius: 6px;
   overflow-x: auto;
-  margin: 1em 0;
+  margin: 1.2em 0;
   max-width: 100%;
-  white-space: pre-wrap;
-  /* Allow code to wrap to prevent horizontal scrolling */
+  border: 1px solid #e1e4e8;
+}
+
+.markdown-preview pre code {
+  background: none;
+  padding: 0;
+  color: var(--text-color);
+  font-size: 0.9em;
+  font-weight: normal;
+}
+
+/* Additional markdown styling for better readability */
+.markdown-preview p {
+  margin: 0.8em 0;
+  color: var(--text-color);
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+  margin: 0.8em 0;
+  padding-left: 1.5em;
+}
+
+.markdown-preview li {
+  margin: 0.3em 0;
+  line-height: 1.5;
+}
+
+.markdown-preview blockquote {
+  margin: 1em 0;
+  padding: 0.8em 1em;
+  background-color: #f8f9fa;
+  border-left: 4px solid var(--primary-color);
+  font-style: italic;
+  color: var(--text-light);
+}
+
+.markdown-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.9em;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.markdown-preview th {
+  background-color: var(--background-light);
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.markdown-preview hr {
+  border: none;
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 2em 0;
 }
 
 .empty-state {
