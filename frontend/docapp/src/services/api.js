@@ -123,3 +123,101 @@ export async function downloadDocumentation(code, isBase64 = false) {
         xhr.send(formData);
     });
 }
+
+/**
+ * Generate documentation from GitHub repository
+ */
+export async function generateGitHubDocumentation(githubUrl, maxFiles = 10) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/docs/from-github`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                github_url: githubUrl,
+                max_files: maxFiles,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(
+                errorData?.detail || `Server error: ${response.status} ${response.statusText}`
+            );
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error('API error in generateGitHubDocumentation:', error);
+        throw error;
+    }
+}
+
+/**
+ * Download GitHub repository documentation as a markdown file
+ */
+export async function downloadGitHubDocumentation(githubUrl, maxFiles = 10) {
+    // Using XMLHttpRequest for direct download handling
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${API_BASE_URL}/docs/download-github`, true);
+        xhr.responseType = 'blob';
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                // Create a blob URL for the response
+                const blob = new Blob([xhr.response], { type: 'text/markdown' });
+                const url = window.URL.createObjectURL(blob);
+
+                // Extract repo name for filename
+                const repoMatch = githubUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
+                const repoName = repoMatch ? `${repoMatch[1]}_${repoMatch[2]}` : 'github_repo';
+                const timestamp = new Date().toISOString().replace(/[-:.]/g, '').substring(0, 14);
+
+                // Create a temporary anchor to trigger download
+                const a = document.createElement('a');
+                a.download = `github_docs_${repoName}_${timestamp}.md`;
+                a.href = url;
+                document.body.appendChild(a);
+                a.click();
+
+                // Clean up
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                resolve();
+            } else {
+                // Try to parse error response
+                try {
+                    const reader = new FileReader();
+                    reader.onload = function () {
+                        try {
+                            const errorData = JSON.parse(reader.result);
+                            reject(new Error(errorData.detail || `Server error: ${xhr.status}`));
+                        } catch (e) {
+                            reject(new Error(`Server error: ${xhr.status}`));
+                        }
+                    };
+                    reader.onerror = function () {
+                        reject(new Error(`Server error: ${xhr.status}`));
+                    };
+                    reader.readAsText(xhr.response);
+                } catch (e) {
+                    reject(new Error(`Server error: ${xhr.status}`));
+                }
+            }
+        };
+
+        xhr.onerror = function () {
+            reject(new Error('Network error - Could not connect to the server'));
+        };
+
+        const requestBody = JSON.stringify({
+            github_url: githubUrl,
+            max_files: maxFiles,
+        });
+
+        xhr.send(requestBody);
+    });
+}

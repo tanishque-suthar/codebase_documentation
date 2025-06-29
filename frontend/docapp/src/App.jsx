@@ -1,15 +1,28 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import './App.css'
 import CodeInput from './components/CodeInput'
 import FileUpload from './components/FileUpload'
+import GitHubInput from './components/GitHubInput'
 import DocumentationDisplay from './components/DocumentationDisplay'
-import { generateDocumentation, uploadFileForDocumentation, downloadDocumentation } from './services/api'
+import { generateDocumentation, uploadFileForDocumentation, downloadDocumentation, generateGitHubDocumentation, downloadGitHubDocumentation } from './services/api'
 
 function App() {
   const [documentation, setDocumentation] = useState('');
-  const [activeTab, setActiveTab] = useState('code'); // 'code' or 'file'
+  const [activeTab, setActiveTab] = useState('code'); // 'code', 'file', or 'github'
   const [error, setError] = useState('');
   const [currentCode, setCurrentCode] = useState(null);
+  const [currentGitHubData, setCurrentGitHubData] = useState(null);
+  const outputSectionRef = useRef(null);
+
+  // Function to scroll to documentation section
+  const scrollToDocumentation = () => {
+    if (outputSectionRef.current) {
+      outputSectionRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
 
   const handleCodeSubmit = async (code) => {
     try {
@@ -17,6 +30,8 @@ function App() {
       const response = await generateDocumentation(code);
       setDocumentation(response.markdown);
       setCurrentCode(code);
+      // Scroll to documentation after a short delay to ensure content is rendered
+      setTimeout(() => scrollToDocumentation(), 100);
       return response;
     } catch (err) {
       const message = err.message || 'Failed to generate documentation. Please try again.';
@@ -32,6 +47,8 @@ function App() {
       const response = await uploadFileForDocumentation(file);
       setDocumentation(response.markdown);
       setCurrentCode(file);
+      // Scroll to documentation after a short delay to ensure content is rendered
+      setTimeout(() => scrollToDocumentation(), 100);
       return response;
     } catch (err) {
       const message = err.message || 'Failed to process file. Please try again.';
@@ -41,10 +58,38 @@ function App() {
     }
   };
 
+  const handleGitHubSubmit = async (githubUrl, maxFiles) => {
+    try {
+      setError('');
+      const response = await generateGitHubDocumentation(githubUrl, maxFiles);
+      setDocumentation(response.markdown);
+      setCurrentGitHubData({ githubUrl, maxFiles });
+      setCurrentCode(null); // Clear code data when using GitHub
+      // Scroll to documentation after a short delay to ensure content is rendered
+      setTimeout(() => scrollToDocumentation(), 100);
+      return response;
+    } catch (err) {
+      const message = err.message || 'Failed to generate GitHub documentation. Please try again.';
+      setError(message);
+      console.error('Error generating GitHub documentation:', err);
+      throw err;
+    }
+  };
+
   const handleDownload = async () => {
     try {
       setError('');
-      await downloadDocumentation(currentCode);
+
+      if (currentGitHubData) {
+        // Download GitHub documentation
+        await downloadGitHubDocumentation(currentGitHubData.githubUrl, currentGitHubData.maxFiles);
+      } else if (currentCode) {
+        // Download regular code documentation
+        await downloadDocumentation(currentCode);
+      } else {
+        throw new Error('No content to download');
+      }
+
       return true;
     } catch (err) {
       const message = err.message || 'Failed to download documentation. Please try again.';
@@ -59,6 +104,7 @@ function App() {
     setError('');
     setDocumentation(''); // Clear documentation output
     setCurrentCode(null); // Reset current code/file
+    setCurrentGitHubData(null); // Reset GitHub data
     setActiveTab(tab);
   };
 
@@ -82,20 +128,28 @@ function App() {
         >
           Upload File
         </button>
+        <button
+          className={`tab-button ${activeTab === 'github' ? 'active' : ''}`}
+          onClick={() => handleTabChange('github')}
+        >
+          GitHub Repository
+        </button>
       </div>
 
       <main className="app-content">
         <div className="input-section">
           {activeTab === 'code' ? (
             <CodeInput onSubmit={handleCodeSubmit} />
-          ) : (
+          ) : activeTab === 'file' ? (
             <FileUpload onSubmit={handleFileSubmit} />
+          ) : (
+            <GitHubInput onSubmit={handleGitHubSubmit} />
           )}
 
           {error && <div className="error-message">{error}</div>}
         </div>
 
-        <div className="output-section">
+        <div className="output-section" ref={outputSectionRef}>
           <DocumentationDisplay
             markdown={documentation}
             onDownload={handleDownload}

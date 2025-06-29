@@ -54,7 +54,6 @@ function DocumentationDisplay({ markdown, onDownload }) {
                 ) : (
                     <div className="empty-state">
                         <p>No documentation generated yet.</p>
-                        <p>Paste code or upload a file to generate documentation.</p>
                     </div>
                 )}
             </div>
