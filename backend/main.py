@@ -186,21 +186,27 @@ async def generate_documentation(request: CodeDocumentationRequest):
             raise HTTPException(status_code=400, detail=f"Error decoding base64: {str(decode_error)}")
         print(f"Decoded code:\n{code}\n")     
         # Create a prompt for documentation generation with consistent formatting
-        prompt = (
-            "Generate concise brief documentation for the following code:\n\n"
-            "```\n"
-            f"{code}\n"
-            "```\n\n"
-            "Include only these sections:\n"
-            "1. Overview of what the code does\n"
-            "2. Description of functions with parameters and return values\n\n"
-            "Format the documentation as Markdown."
-        )
-        print(f"Generated prompt for AI:\n{prompt}\n")
+        prompt = f"""
+Generate concise brief documentation for the following code:\n\n
+{code}\n
+Generate documentation with the following sections:
+# 1. PROJECT OVERVIEW
+- main purpose
+- Key features and working
+- Main user workflows(if applicable)\n
+# 2. API REFERENCE (if applicable)
+- Available endpoints and their purpose along with function signatures
+- Request/response formats
+# 3. FUNCTIONS
+- List all non-API functions with their purpose and parameters.\n
+Format the documentation as clear, well-structured Markdown.
+Output in a code block.
+        """
+        #print(f"Generated prompt for AI:\n{prompt}\n")
         
         # Generation configuration
         gen_config = types.GenerateContentConfig(
-            temperature=0.5,
+            temperature=0.3,
             max_output_tokens=1024
         )
         
@@ -211,9 +217,20 @@ async def generate_documentation(request: CodeDocumentationRequest):
                 contents=prompt,
                 config=gen_config
             )
-            
+            ai_content = response.text.strip()
+
+            # Remove markdown code blocks if present
+            if ai_content.startswith('```markdown'):
+                ai_content = ai_content[11:].strip()
+                if ai_content.endswith('```'):
+                    ai_content = ai_content[:-3].strip()
+            elif ai_content.startswith('```'):
+                ai_content = ai_content[3:].strip()
+                if ai_content.endswith('```'):
+                    ai_content = ai_content[:-3].strip()
+
             return DocumentationResponse(
-                markdown=response.text
+                markdown=ai_content
             )
         except Exception as api_error:
             raise HTTPException(
