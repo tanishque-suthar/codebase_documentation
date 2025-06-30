@@ -4,7 +4,7 @@ import CodeInput from './components/CodeInput'
 import FileUpload from './components/FileUpload'
 import GitHubInput from './components/GitHubInput'
 import DocumentationDisplay from './components/DocumentationDisplay'
-import { generateDocumentation, uploadFileForDocumentation, downloadDocumentation, generateGitHubDocumentation, downloadGitHubDocumentation } from './services/api'
+import { generateDocumentation, uploadFileForDocumentation, downloadDocumentationUniversal, generateGitHubDocumentation } from './services/api'
 
 function App() {
   const [documentation, setDocumentation] = useState('');
@@ -80,15 +80,31 @@ function App() {
     try {
       setError('');
 
-      if (currentGitHubData) {
-        // Download GitHub documentation
-        await downloadGitHubDocumentation(currentGitHubData.githubUrl, currentGitHubData.maxFiles);
-      } else if (currentCode) {
-        // Download regular code documentation
-        await downloadDocumentation(currentCode);
-      } else {
-        throw new Error('No content to download');
+      // Check if we have documentation to download
+      if (!documentation || !documentation.trim()) {
+        throw new Error('No documentation to download. Please generate documentation first.');
       }
+
+      // Determine source type and filename based on current state
+      let sourceType = 'code';
+      let filenamePrefix = 'documentation';
+
+      if (currentGitHubData) {
+        sourceType = 'github';
+        // Extract repo name for filename
+        const repoMatch = currentGitHubData.githubUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
+        const repoName = repoMatch ? `${repoMatch[1]}_${repoMatch[2]}` : 'github_repo';
+        filenamePrefix = `github_docs_${repoName}`;
+      } else if (currentCode instanceof File) {
+        sourceType = 'file';
+        filenamePrefix = `file_docs_${currentCode.name.replace(/\.[^/.]+$/, '')}`; // Remove file extension
+      } else if (currentCode) {
+        sourceType = 'code';
+        filenamePrefix = 'code_documentation';
+      }
+
+      // Use the universal download function with stored documentation
+      await downloadDocumentationUniversal(documentation, filenamePrefix, sourceType);
 
       return true;
     } catch (err) {
