@@ -11,7 +11,8 @@ def setup_cors_middleware(app):
         "http://localhost:5173",     # Default Vite dev server
         "http://localhost:3000",     # Alternative port
         "http://127.0.0.1:5173",     # Using IP instead of localhost
-        "http://127.0.0.1:3000",     # Alternative port with IP
+        "http://127.0.0.1:3000",
+        "https://codebase-documentation-4xmh8p7t7-tanishque-suthars-projects.vercel.app/",
     ]
 
     app.add_middleware(
