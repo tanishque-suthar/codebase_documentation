@@ -2,8 +2,7 @@ import base64
 import json
 from typing import Dict, List
 from datetime import datetime
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 import os
 from pathlib import Path
 
@@ -15,7 +14,8 @@ class AIDocumentationService:
         if not api_key:
             raise ValueError("GOOGLE_API_KEY environment variable is not set.")
         
-        self.client = genai.Client(api_key=api_key)
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel("gemma-3-12b-it")
     
     def decode_code(self, code: str, is_base64: bool = False) -> str:
         """Decode code from base64 if needed"""
@@ -42,17 +42,13 @@ Format the documentation as clear, well-structured Markdown.
 Output in a code block.
         """
         
-        # Generation configuration
-        gen_config = types.GenerateContentConfig(
-            temperature=0.3,
-            max_output_tokens=1024
-        )
-        
         # Generate documentation with AI
-        response = self.client.models.generate_content(
-            model="gemma-3-12b-it",
-            contents=prompt,
-            config=gen_config
+        response = self.model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.3,
+                max_output_tokens=1024
+            )
         )
         
         ai_content = response.text.strip()
@@ -116,15 +112,12 @@ Return ONLY valid JSON in this exact format:
 """
         
         try:
-            gen_config = types.GenerateContentConfig(
-                temperature=0.2,  # Low temperature for consistent JSON
-                max_output_tokens=1024
-            )
-            
-            response = self.client.models.generate_content(
-                model="gemma-3-12b-it",
-                contents=prompt,
-                config=gen_config
+            response = self.model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.2,
+                    max_output_tokens=1024
+                )
             )
             
             # Parse AI response
@@ -202,15 +195,12 @@ Format as clear, well-structured Markdown.
 """
         
         # Generate documentation with increased token limit
-        gen_config = types.GenerateContentConfig(
-            temperature=0.3,  # Balanced for comprehensive analysis
-            max_output_tokens=2048
-        )
-        
-        response = self.client.models.generate_content(
-            model="gemma-3-12b-it",
-            contents=prompt,
-            config=gen_config
+        response = self.model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.3,
+                max_output_tokens=2048
+            )
         )
         
         # Clean up AI response by removing markdown code block wrappers

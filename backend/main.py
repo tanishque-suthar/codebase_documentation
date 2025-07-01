@@ -75,6 +75,11 @@ async def root():
         "workflow": "1. Generate docs using any endpoint → 2. Frontend stores markdown → 3. Download using stored content"
     }
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Render"""
+    return {"status": "healthy", "service": "Code Documentation API"}
+
 # Add this if you want to run directly using python (not needed for uvicorn command line)
 if __name__ == "__main__":
     uvicorn.run(app, host=settings.HOST, port=settings.PORT)
