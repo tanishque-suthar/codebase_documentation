@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://codebase-documentation.onrender.com';
 
 /**
  * Generate documentation from code text input
