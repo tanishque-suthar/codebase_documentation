@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import './App.css'
+import Homepage from './components/Homepage'
 import CodeInput from './components/CodeInput'
 import FileUpload from './components/FileUpload'
 import GitHubInput from './components/GitHubInput'
@@ -7,12 +8,18 @@ import DocumentationDisplay from './components/DocumentationDisplay'
 import { generateDocumentation, uploadFileForDocumentation, downloadDocumentationUniversal, generateGitHubDocumentation } from './services/api'
 
 function App() {
+  const [showHomepage, setShowHomepage] = useState(true);
   const [documentation, setDocumentation] = useState('');
   const [activeTab, setActiveTab] = useState('code'); // 'code', 'file', or 'github'
   const [error, setError] = useState('');
   const [currentCode, setCurrentCode] = useState(null);
   const [currentGitHubData, setCurrentGitHubData] = useState(null);
   const outputSectionRef = useRef(null);
+
+  // Function to handle getting started from homepage
+  const handleGetStarted = () => {
+    setShowHomepage(false);
+  };
 
   // Function to scroll to documentation section
   const scrollToDocumentation = () => {
@@ -125,58 +132,63 @@ function App() {
   };
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1>Code Documentation Generator</h1>
-        <p>Generate comprehensive documentation for your code</p>
-      </header>
+    <>
+      {showHomepage ? (
+        <Homepage onGetStarted={handleGetStarted} />
+      ) : (
+        <div className="app-container">
+          <header className="app-header">
+            <h1>Documentation Generator</h1>
+          </header>
 
-      <div className="tab-navigation">
-        <button
-          className={`tab-button ${activeTab === 'code' ? 'active' : ''}`}
-          onClick={() => handleTabChange('code')}
-        >
-          Paste Code
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'file' ? 'active' : ''}`}
-          onClick={() => handleTabChange('file')}
-        >
-          Upload File
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'github' ? 'active' : ''}`}
-          onClick={() => handleTabChange('github')}
-        >
-          GitHub Repository
-        </button>
-      </div>
+          <div className="tab-navigation">
+            <button
+              className={`tab-button ${activeTab === 'code' ? 'active' : ''}`}
+              onClick={() => handleTabChange('code')}
+            >
+              Paste Code
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'file' ? 'active' : ''}`}
+              onClick={() => handleTabChange('file')}
+            >
+              Upload File
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'github' ? 'active' : ''}`}
+              onClick={() => handleTabChange('github')}
+            >
+              GitHub Repository
+            </button>
+          </div>
 
-      <main className="app-content">
-        <div className="input-section">
-          {activeTab === 'code' ? (
-            <CodeInput onSubmit={handleCodeSubmit} />
-          ) : activeTab === 'file' ? (
-            <FileUpload onSubmit={handleFileSubmit} />
-          ) : (
-            <GitHubInput onSubmit={handleGitHubSubmit} />
-          )}
+          <main className="app-content">
+            <div className="input-section">
+              {activeTab === 'code' ? (
+                <CodeInput onSubmit={handleCodeSubmit} />
+              ) : activeTab === 'file' ? (
+                <FileUpload onSubmit={handleFileSubmit} />
+              ) : (
+                <GitHubInput onSubmit={handleGitHubSubmit} />
+              )}
 
-          {error && <div className="error-message">{error}</div>}
+              {error && <div className="error-message">{error}</div>}
+            </div>
+
+            <div className="output-section" ref={outputSectionRef}>
+              <DocumentationDisplay
+                markdown={documentation}
+                onDownload={handleDownload}
+              />
+            </div>
+          </main>
+
+          <footer className="app-footer">
+            <p>Made by Team Daffodils</p>
+          </footer>
         </div>
-
-        <div className="output-section" ref={outputSectionRef}>
-          <DocumentationDisplay
-            markdown={documentation}
-            onDownload={handleDownload}
-          />
-        </div>
-      </main>
-
-      <footer className="app-footer">
-        <p>Made by Team Daffodils</p>
-      </footer>
-    </div>
+      )}
+    </>
   )
 }
 
