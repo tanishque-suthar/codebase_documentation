@@ -60,6 +60,32 @@ body {
   font-size: 1.1rem;
 }
 
+/* Back button styles */
+.back-button {
+  position: absolute;
+  left: 0;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background-color: rgba(127, 176, 105, 0.1);
+  transform: translateX(-2px);
+}
+
+.back-button:active {
+  transform: translateX(0);
+}
+
 /* Tab navigation */
 .tab-navigation {
   display: flex;

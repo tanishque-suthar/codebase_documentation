@@ -1,6 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const Homepage = ({ onGetStarted }) => {
+const Homepage = () => {
+    const navigate = useNavigate();
+
+    const handleGetStarted = () => {
+        navigate('/generate-docs');
+    };
+
     return (
         <div className="homepage-container">
             <div className="homepage-content">
@@ -11,7 +18,7 @@ const Homepage = ({ onGetStarted }) => {
                     </p>
                     <button
                         className="generate-docs-button"
-                        onClick={onGetStarted}
+                        onClick={handleGetStarted}
                     >
                         Generate Documentation
                     </button>
