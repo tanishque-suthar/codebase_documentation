@@ -1,100 +1,133 @@
-# Code Documentation API
+# BloomDocs - Code Documentation Generator
 
-A full-stack application that generates documentation for code snippets using Google's Gemma AI model.
+A full-stack application that generates comprehensive documentation for code snippets, files, and entire GitHub repositories using Google's Gemma AI model with intelligent file prioritization.
 
-## Features
+## ✨ Features
 
-- Generate documentation from code in any programming language
-- Handle complex multiline code via base64 encoding
-- Return formatted Markdown documentation
-- Download documentation as .md files
-- Upload code files for documentation generation
-- Modern React UI with code input and file upload options
-- Syntax-highlighted documentation preview
+- **Multi-Input Support**: Generate documentation from:
+  - Direct code paste
+  - File uploads
+  - GitHub repositories
+- **AI-Powered Analysis**: Smart file prioritization for GitHub repositories
+- **Professional Output**: Formatted Markdown documentation with syntax highlighting
+- **Universal Download System**: Download documentation as .md files with intelligent naming
+- **Modern UI**: Beautiful homepage with glassmorphism design and smooth animations
+- **Real-time Processing**: Live loading indicators and status updates
 
-## Project Structure
+## 🏗️ Project Structure
 
-- **Backend**: FastAPI server that processes code and generates documentation
-- **Frontend**: React application with Vite for a responsive user interface
+```
+codebase_docApp/
+├── backend/                 # FastAPI server
+│   ├── main.py             # Application entry point
+│   ├── middleware.py       # CORS configuration
+│   ├── config/             # Application settings
+│   ├── models/             # Pydantic schemas
+│   ├── routers/            # API endpoints
+│   │   ├── docs.py         # Code/file documentation
+│   │   ├── github.py       # GitHub repository analysis
+│   │   └── download.py     # Universal download system
+│   ├── services/           # Business logic
+│   │   ├── ai_service.py   # AI documentation generation
+│   │   └── github_service.py # GitHub API integration with caching
+│   └── utils/              # Helper functions
+└── frontend/docapp/        # React + Vite application
+    ├── src/
+    │   ├── components/     # React components
+    │   │   ├── Homepage.jsx        # Landing page
+    │   │   ├── DocumentationApp.jsx # Main app
+    │   │   ├── CodeInput.jsx       # Code paste interface
+    │   │   ├── FileUpload.jsx      # File upload interface
+    │   │   ├── GitHubInput.jsx     # GitHub repo interface
+    │   │   └── DocumentationDisplay.jsx # Output display
+    │   ├── services/       # API integration
+    │   └── App.css         # Comprehensive styling
+    └── package.json
+```
 
-## Backend Setup
+## 🚀 Quick Start
 
-1. Set up a virtual environment:
-   ```
+### Backend Setup
+
+1. **Create virtual environment(optional but recommended):**
+   ```bash
+   cd backend
    python -m venv .venv
-   .\.venv\Scripts\activate
+   .venv\Scripts\activate  # Windows
+   # or
+   source .venv/bin/activate  # macOS/Linux
    ```
 
-2. Install required packages:
-   ```
+2. **Install dependencies:**
+   ```bash
    pip install -r requirements.txt
    ```
 
-3. Configure environment variables:
-   - Create a `.env` file in the backend directory
-   - Add the following variables:
-     ```
-     GOOGLE_API_KEY=your_google_api_key
-     PORT=8000
-     HOST=0.0.0.0
-     ```
-
-## Frontend Setup
-
-1. Navigate to the frontend directory:
+3. **Configure environment:**
+   Create a `.env` file in the backend directory:
+   ```env
+   GOOGLE_API_KEY=your_google_api_key_here
+   PORT=8000
+   HOST=0.0.0.0
+   GITHUB_TOKEN=your_github_token_here  # Optional, for higher rate limits
    ```
+
+4. **Start the server:**
+   ```bash
+   uvicorn main:app --reload
+   # or
+   python main.py
+   ```
+
+   Server will be available at: http://localhost:8000
+   API documentation at: http://localhost:8000/api-docs
+
+### Frontend Setup
+
+1. **Navigate to frontend:**
+   ```bash
    cd frontend/docapp
    ```
 
-2. Install dependencies:
-   ```
+2. **Install dependencies:**
+   ```bash
    npm install
    ```
 
-3. Start the development server:
-   ```
+3. **Start development server:**
+   ```bash
    npm run dev
    ```
 
-4. The frontend will be available at: http://localhost:5173
+   Frontend will be available at: http://localhost:5173
 
-## Running the Application
+## 🎯 Usage Guide
 
-### Backend
-Start the API server:
-```
-uvicorn main:app --reload
-```
+### 1. **Code Input Method**
+- Paste any code snippet directly into the text area
+- Supports all programming languages
+- Real-time validation and processing
 
-Or run directly:
-```
-python main.py
-```
+### 2. **File Upload Method**
+- Upload code files (up to 10MB)
+- Supported formats: `.js`, `.ts`, `.py`, `.java`, and more
+- Automatic file type detection and processing
 
-Once the server is running, you can access the Swagger UI for API documentation at: /api-docs
+### 3. **GitHub Repository Method**
+- Enter any public GitHub repository URL
+- AI automatically prioritizes important files
+- Configurable file limit (1-50 files, recommended: 10-20)
+- Smart filtering excludes build artifacts and dependencies, which result in efficient token usage and faster documentation generation
+- Repository language detection for better analysis
 
-### Frontend
-Start the frontend development server:
-```
-cd frontend/docapp
-npm run dev
-```
+## 🔧 API Endpoints
 
-## UI Components
+### Documentation Generation
 
-The frontend includes the following main components:
+#### `POST /docs/gen`
+Generate documentation from code text.
 
-- **CodeInput**: Text area for pasting code snippets
-- **FileUpload**: File upload interface for code files
-- **DocumentationDisplay**: Displays generated documentation with syntax highlighting
-
-## API Endpoints
-
-### `POST /docs/gen`
-
-Generates documentation for provided code and returns it as JSON.
-
-**Request Body:**
+**Request:**
 ```json
 {
   "code": "def hello_world():\n    print('Hello, world!')",
@@ -105,43 +138,162 @@ Generates documentation for provided code and returns it as JSON.
 **Response:**
 ```json
 {
-  "markdown": "## Overview\n\nThis code defines a function that prints 'Hello, world!'...",
+  "markdown": "# Documentation\n\n## Overview\n\nThis function prints a greeting..."
 }
 ```
 
-### `POST /docs/from-upload`
+#### `POST /docs/from-upload`
+Generate documentation from uploaded file.
 
-Generates documentation from an uploaded file containing code.
-
-**Request:**
-- `file`: Upload a text file containing code.
+**Request:** Multipart form with `file` field
 
 **Response:**
 ```json
 {
-  "markdown": "## Overview\n\nThis code defines a function that prints 'Hello, world!'...",
+  "markdown": "# File Documentation\n\n..."
 }
 ```
 
-### `POST /docs/download`
-
-Generates documentation and returns it as a downloadable .md file.
+#### `POST /docs/from-github`
+Generate documentation from GitHub repository.
 
 **Request:**
-- `file`: Upload a text file containing code.
-- OR
-- `code`: Provide code directly in the request body.
+```json
+{
+  "github_url": "https://github.com/owner/repository",
+  "max_files": 10
+}
+```
 
-**Response:** Markdown file download
+**Response:**
+```json
+{
+  "markdown": "# Repository Documentation\n\n..."
+}
+```
 
-## Base64 Encoding
+### Download System
 
-For complex multiline code with special characters, use base64 encoding:
+#### `POST /docs/download`
+Universal download endpoint for pre-generated documentation.
+
+**Request:**
+```json
+{
+  "markdown_content": "# My Documentation\n\nContent here...",
+  "filename_prefix": "my_project_docs",
+  "source_type": "github"
+}
+```
+
+**Response:** Markdown file download with timestamp
+
+### Health Check
+
+#### `GET /health`
+Check service status.
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "service": "Code Documentation API"
+}
+```
+
+## 🧠 AI Features
+
+### Smart Repository Analysis
+- **Language Detection**: Automatically identifies primary programming languages
+- **File Prioritization**: AI ranks files by documentation importance (1-5 scale)
+- **Intelligent Filtering**: Skips build artifacts, dependencies, and temporary files
+- **Optimized API Usage**: Efficient GitHub API usage with caching and rate limiting
+
+### Documentation Quality
+- **Contextual Analysis**: Understands project structure and relationships
+- **Comprehensive Output**: Generates project overview, architecture, API reference, and setup instructions
+- **Multiple Formats**: Supports various programming languages and frameworks
+- **Professional Formatting**: Clean, readable Markdown with proper structure
+
+## 🎨 UI/UX Features
+
+### Modern Design
+- **Glassmorphism Homepage**: Beautiful landing page with gradient backgrounds
+- **Smooth Animations**: Floating elements and loading indicators
+- **Tab Navigation**: Easy switching between input methods
+
+### User Experience
+- **Real-time Feedback**: Loading states and progress indicators
+- **Error Handling**: Clear error messages and recovery suggestions
+- **Auto-scroll**: Automatic navigation to generated documentation
+- **Download Integration**: One-click download with intelligent file naming
+
+## ⚙️ Technical Stack
+
+### Backend
+- **FastAPI**: Modern Python web framework
+- **Google Gemma AI**: gemma-3-12b-it for documentation generation
+- **Pydantic**: Data validation and settings management
+- **Requests**: GitHub API integration
+- **Python-multipart**: File upload handling
+- **Uvicorn**: ASGI server
+
+### Frontend
+- **React 19**: Latest React with modern hooks
+- **Vite**: Fast build tool and development server
+- **React Router**: Client-side routing
+- **Marked.js**: Markdown parsing and rendering
+- **Highlight.js**: Syntax highlighting for code blocks
+- **Font Awesome**: Icon library
+
+### DevOps & Deployment
+- **Render**: Backend hosting (https://codebase-documentation.onrender.com)
+- **Vercel**: Frontend hosting (https://codebase-documentation.vercel.app/)
+- **Environment Variables**: Secure configuration management
+- **CORS**: Properly configured cross-origin requests
+
+## 🛠️ Development
+
+### Building for Production
+
+**Backend:**
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+```
+
+**Frontend:**
+```bash
+cd frontend/docapp
+npm install
+npm run build
+npm run preview
+```
+
+### Code Quality
+- **ESLint**: JavaScript/React linting
+- **Type Safety**: Proper TypeScript-style prop validation
+- **Modular Architecture**: Clean separation of concerns
+- **Error Boundaries**: Comprehensive error handling
+
+## 🌐 Browser Compatibility
+
+Tested and optimized for:
+- ✅ Chrome (latest)
+- ✅ Firefox (latest)
+- ✅ Safari (latest)
+- ✅ Edge (latest)
+- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
+
+## 📝 Examples
+
+### Base64 Encoding
+For complex code with special characters:
 
 ```javascript
-// Frontend example
 const code = document.getElementById('codeInput').value;
-const encodedCode = btoa(code);  // Base64 encode
+const encodedCode = btoa(code);
 
 fetch('/docs/gen', {
   method: 'POST',
@@ -150,64 +302,32 @@ fetch('/docs/gen', {
     code: encodedCode,
     isBase64: true
   })
-})
-.then(response => response.json())
-.then(data => {
-  console.log(data.markdown);
 });
 ```
 
-## Technical Details
-
-Backend:
-- Uses FastAPI framework for the REST API
-- Leverages Google's Gemma 3 12B IT model for documentation generation
-- Implements proper error handling for all endpoints
-- Includes temporary file management for downloads
-- Supports file uploads for documentation generation
-
-Frontend:
-- Built with React + Vite for a fast, modern UI
-- Uses marked.js for Markdown rendering
-- Highlight.js for syntax highlighting code blocks
-- Responsive design for desktop and mobile use
-- Clean tab-based interface for code input and file upload options
-
-## Development
-
-### Building for Production
-
-#### Backend
-```
-cd backend
-pip install -r requirements.txt
+### GitHub Repository Analysis
+```bash
+https://github.com/facebook/react
+https://github.com/microsoft/vscode
+https://github.com/nodejs/node
 ```
 
-#### Frontend
-```
-cd frontend/docapp
-npm install
-npm run build
-```
-
-The production build will be available in the `frontend/docapp/dist` directory.
-
-### Browser Compatibility
-
-The application has been tested and works on:
-- Chrome (latest)
-- Firefox (latest)
-- Edge (latest)
-- Safari (latest)
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Add tests if applicable
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
-## License
+### Development Guidelines
+- Follow existing code style and patterns
+- Add comments for complex logic
+- Test new features thoroughly
+- Update documentation as needed
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+---
+
+For support or questions, please open an issue on GitHub.
